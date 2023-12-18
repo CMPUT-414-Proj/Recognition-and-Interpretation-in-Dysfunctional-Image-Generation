@@ -57,7 +57,13 @@ parser.add_argument('--log-interval',
 
 # construct a VAE
 class VAE(nn.Module):
+    """
+        Construct a VAE
+    """
     def __init__(self):
+        """
+            Construct the architecture of VAE
+        """
         super(VAE, self).__init__()
         self.fc1 = nn.Linear(784, 400)
         self.fc21 = nn.Linear(400, N)  # 20
@@ -66,33 +72,50 @@ class VAE(nn.Module):
         self.fc4 = nn.Linear(400, 784)
 
     def encode(self, x):
+        """
+            Define the encoding process
+        """
         h1 = F.relu(self.fc1(x))
         # return mu, logvar
         return self.fc21(h1), self.fc22(h1)
 
     def reparameterize(self, mu, log_var):
+        """
+            Reparameterization trick
+        """
         std = torch.exp(0.5 * log_var)
         eps = torch.randn_like(std)
         return mu + eps * std
 
     def decode(self, z):
+        """
+            Define the decoding process
+        """
         h3 = F.relu(self.fc3(z))
         return torch.sigmoid(self.fc4(h3))
 
     def forward(self, x):
+        """
+            Forward propagation function
+        """
         mu, log_var = self.encode(x.reshape(-1, 784))
         z = self.reparameterize(mu, log_var)
         x_out = self.decode(z)
         return x_out, mu, log_var, z
 
     def getZ(self, x):
+        """
+            Get the sampling variable Z
+        """
         mu, log_var = self.encode(x.reshape(-1, 784))
         z = self.reparameterize(mu, log_var)
         return z
 
 
-# Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, mu, logvar, beta=1):
+    """
+        Reconstruction + KL divergence losses summed over all elements and batch
+    """
     BCE_loss = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
     # see Appendix B from VAE paper:
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
@@ -102,11 +125,16 @@ def loss_function(recon_x, x, mu, logvar, beta=1):
 
     return BCE_loss + beta * KLD
 
-# Remove some outliers using IQR
 def _removeOutliers(data, r=10):
+    """
+        Remove outliers
+    """
     outlierRatio = r / 2
+    # IQR = Q3 - Q1
     IQR = np.percentile(data, 100 - outlierRatio) - np.percentile(data, outlierRatio)
+    # lower = Q1 - 1.5 * IQR
     lower = np.percentile(data, outlierRatio) - 1.5 * IQR
+    # lower = Q3 + 1.5 * IQR
     upper = np.percentile(data, 100 - outlierRatio) + 1.5 * IQR
 
     filtered = deepcopy(data)
@@ -116,10 +144,17 @@ def _removeOutliers(data, r=10):
 
 
 def _toImg(x):
+    """
+        Convert tensor x to a NumPy array representing an image
+    """
     return x.cpu().detach().numpy().reshape((28, 28))
 
 
 def _plot2DLatentSpacePlus(Z):
+    """
+        Plot the latent space of 2D VAE
+    """
+    # Get the label
     trainLabels = trainingData.targets[:60000].reshape((-1, 1))
     labels = np.array([int(item[0]) for item in trainLabels.numpy()])
 
@@ -130,7 +165,7 @@ def _plot2DLatentSpacePlus(Z):
     a = Z[:, 0].detach().numpy()
     b = Z[:, 1].detach().numpy()
     plt.scatter(a, b, edgecolors="black", c=labels, alpha=0.7, s=20)
-
+    # Generate Samples
     samples = [
         # Cluster 1 (Left Up) #todo
         sample_1 := np.array([np.random.normal(-3.5, 0.3), np.random.normal(2.5, 0.3)]).reshape(1, 2),
@@ -177,11 +212,15 @@ def _plot2DLatentSpacePlus(Z):
 
 
 def _plot3DLatentSpacePlus(Z):
+    """
+        Plot the latent space of 3D VAE
+    """
+    # Get the label
     trainLabels = trainingData.targets[:60000].reshape((-1, 1))
     labels = np.array([int(item[0]) for item in trainLabels.numpy()])
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
-
+    # Set the axis range
     SCOPE = 6
     ax.set_xlim((-SCOPE, SCOPE))
     ax.set_ylim((-SCOPE, SCOPE))
@@ -192,7 +231,9 @@ def _plot3DLatentSpacePlus(Z):
     a = np.array(Z[:, 0].detach().reshape((-1, 1)), dtype=list)
     b = np.array(Z[:, 1].detach().reshape((-1, 1)), dtype=list)
     c = np.array(Z[:, 2].detach().reshape((-1, 1)), dtype=list)
+    # Scatterplotting
     ax.scatter(a, b, c, edgecolors="black", c=labels)
+    # Generate Samples
     samples = []
     """
     samples = [
@@ -229,6 +270,9 @@ def _plot3DLatentSpacePlus(Z):
 
 # Traning
 def train(epoch):
+    """
+        Train VAE models
+    """
     model.train()
     training_loss = 0
     if epoch == 1:
@@ -237,6 +281,7 @@ def train(epoch):
                 file.write(f"{item}\n")
     Z = None
     X = []
+    # Training loop
     for batch_index, (data, _) in enumerate(train_loader):
         X.append(data)
         data = data.to(device)
@@ -252,6 +297,7 @@ def train(epoch):
                 epoch, batch_index * len(data), len(train_loader.dataset),
                        100. * batch_index / len(train_loader),
                        loss.item() / len(data)))
+    # GMM fitting
     GMM = GaussianMixture(n_components=N)
     GMM.fit(Z.detach().numpy())
 
@@ -263,18 +309,24 @@ def train(epoch):
 
 # Testing
 def test(epoch):
+    """
+        Evaluate the performance of the model on the test set at the end of each training cycle
+    """
     model.eval()
     test_loss = 0
     with torch.no_grad():
         for i, (data, _) in enumerate(test_loader):
             if epoch == 1:
+                # Save test set label
                 with open("testset.txt", "w") as file:
                     for item in testData.test_labels:
                         file.write(f"{item}\n")
 
             data = data.to(device)
             batch, mu, log_var, _ = model(data)
+            # Calculate test loss
             test_loss += loss_function(batch, data, mu, log_var).item()
+            # Compare and save images
             if i == 0:
                 n = min(data.size(0), data.size(1))
                 comparison = torch.cat([data[:n], batch.view(args.batch_size, 1, 28, 28)[:n]])
@@ -283,8 +335,9 @@ def test(epoch):
                     dimension = "2d"
                     # if is3D:
                     #     a = "3d"
+                    # Save weights
                     torch.save(model.state_dict(), oj("./weights", f'vae_{dimension}_epoch_{epoch}.pth'))
-
+    # Calculate the average loss
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
 
@@ -296,11 +349,13 @@ if __name__ == "__main__":
     device = torch.device("cuda" if args.cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-
+    # Load training data
     trainingData = datasets.MNIST('data', train=True, download=True, transform=transforms.ToTensor())
+    # load test data
     testData = datasets.MNIST('data', train=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(trainingData, batch_size=args.batch_size, shuffle=False, **kwargs)
     test_loader = torch.utils.data.DataLoader(testData, batch_size=args.batch_size, shuffle=False, **kwargs)
+    # Set the output directory to save the generated image
     out_dir = 'samples2'
     os.makedirs(out_dir, exist_ok=True)
 
@@ -312,6 +367,7 @@ if __name__ == "__main__":
     for epoch in range(1, 501):
         # train(epoch)
         test(epoch)
+        # Save images
         with torch.no_grad():
             sample = torch.randn(60, N).to(device)
             sample = model.decode(sample).cpu()
