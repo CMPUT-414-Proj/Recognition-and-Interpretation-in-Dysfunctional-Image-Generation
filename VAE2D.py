@@ -55,7 +55,7 @@ parser.add_argument('--log-interval',
                     metavar='N',
                     help='how many batches to wait before logging training status')
 
-
+# construct a VAE
 class VAE(nn.Module):
     def __init__(self):
         super(VAE, self).__init__()
@@ -102,16 +102,16 @@ def loss_function(recon_x, x, mu, logvar, beta=1):
 
     return BCE_loss + beta * KLD
 
-
+# Remove some outliers using IQR
 def _removeOutliers(data, r=10):
     outlierRatio = r / 2
     IQR = np.percentile(data, 100 - outlierRatio) - np.percentile(data, outlierRatio)
-    lower_threshold = np.percentile(data, outlierRatio) - 1.5 * IQR
-    upper_threshold = np.percentile(data, 100 - outlierRatio) + 1.5 * IQR
+    lower = np.percentile(data, outlierRatio) - 1.5 * IQR
+    upper = np.percentile(data, 100 - outlierRatio) + 1.5 * IQR
 
     filtered = deepcopy(data)
-    filtered[(filtered < lower_threshold)] = 0
-    filtered[(filtered > upper_threshold)] = 0
+    filtered[(filtered < lower)] = 0
+    filtered[(filtered > upper)] = 0
     return filtered
 
 
@@ -227,7 +227,7 @@ def _plot3DLatentSpacePlus(Z):
         plt.title(f'{str(idx + 1)}')
         plt.show()
 
-
+# Traning
 def train(epoch):
     model.train()
     training_loss = 0
@@ -261,7 +261,7 @@ def train(epoch):
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss / len(train_loader.dataset)))
     torch.save(model.state_dict(), oj("./weights", f'vae_2d_epoch_n.pth'))
 
-
+# Testing
 def test(epoch):
     model.eval()
     test_loss = 0
@@ -280,10 +280,10 @@ def test(epoch):
                 comparison = torch.cat([data[:n], batch.view(args.batch_size, 1, 28, 28)[:n]])
                 if epoch == 1:
                     save_image(comparison.cpu(), oj(out_dir, 'reconstruction_' + str(epoch) + '.png'), nrow=n)
-                    a = "2d"
+                    dimension = "2d"
                     # if is3D:
                     #     a = "3d"
-                    torch.save(model.state_dict(), oj("./weights", f'vae_{a}_epoch_{epoch}.pth'))
+                    torch.save(model.state_dict(), oj("./weights", f'vae_{dimension}_epoch_{epoch}.pth'))
 
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
