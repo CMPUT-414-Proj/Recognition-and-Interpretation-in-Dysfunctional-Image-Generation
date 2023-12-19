@@ -206,8 +206,8 @@ def _plot2DLatentSpacePlus(Z):
     SCOPE = 10
     plt.xlim((-SCOPE, SCOPE))
     plt.ylim((-SCOPE, SCOPE))
-    a = Z[:, 0].detach().numpy()
-    b = Z[:, 1].detach().numpy()
+    a = Z[:, 0].cpu().detach().numpy()
+    b = Z[:, 1].cpu().detach().numpy()
     plt.scatter(a, b, edgecolors="black", c=labels, alpha=0.7, s=20)
     # Generate Samples
     samples = [
@@ -237,6 +237,30 @@ def _plot2DLatentSpacePlus(Z):
         sample_16 := np.array([np.random.normal(1.3, 0.1), np.random.normal(-1, 0.15)]).reshape(1, 2),
         sample_17 := np.array([np.random.normal(0, 0.3), np.random.normal(0, 0.15)]).reshape(1, 2),
         sample_18 := np.array([np.random.normal(0, 0.3), np.random.normal(0, 0.15)]).reshape(1, 2),
+        # sample_1 := np.array(
+        #     [np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+        # sample_2 := np.array(
+        #     [np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+        #
+        # sample_3 := np.array(
+        #     [np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+        # sample_4 := np.array(
+        #     [np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+        #
+        # sample_5 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(
+        #     1, 3),
+        # sample_6 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(
+        #     1, 3),
+        #
+        # sample_7 := np.array(
+        #     [np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+        # sample_8 := np.array(
+        #     [np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+        #
+        # sample_9 := np.array(
+        #     [np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+        # sample_10 := np.array(
+        #     [np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
     ]
     # samples = []
     print(samples)
@@ -343,13 +367,13 @@ def train(epoch):
                        loss.item() / len(data)))
     # GMM fitting
     GMM = GaussianMixture(n_components=N)
-    GMM.fit(Z.detach().numpy())
+    GMM.fit(Z.cpu().detach().numpy())
 
     # _plot3DLatentSpacePlus(Z)
     _plot2DLatentSpacePlus(Z)
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss / len(train_loader.dataset)))
-    torch.save(model.state_dict(), oj("./weights", f'vae_2d_epoch_n.pth'))
+    torch.save(model.state_dict(), oj("./weights",  f'vae_2d_epoch_{epoch}.pth'))
     print("save successfully!!!")
 
 # Testing
@@ -389,7 +413,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     torch.manual_seed(args.seed)
-    device = torch.device("cuda" if args.cuda else "cpu")
+    device = torch.device("cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
     # Load training data
@@ -402,24 +426,24 @@ if __name__ == "__main__":
     out_dir = 'samples2'
     os.makedirs(out_dir, exist_ok=True)
 
-    # file_path = "./weights/vae_2d_epoch_100.pth"
-    # if os.path.exists(file_path):
-    #     MODEL = 'weights/vae_2d_epoch_100.pth'
-    #     model = VAE().to(device)
-    #     model.load_state_dict(torch.load(MODEL))
-    #     optimizer = optim.Adam(model.parameters(), lr=1e-5)
-    # else:
-    #     model = VAE().to(device)
-    #     optimizer = optim.Adam(model.parameters(), lr=1e-5)
-    #     for epoch in range(1,501):
-    #         train(epoch)
-    #     MODEL = 'weights/vae_2d_epoch_100.pth'
-    #     model.load_state_dict(torch.load(MODEL))
+    file_path = "./weights/vae_2d_epoch_100.pth"
+    if os.path.exists(file_path):
+        MODEL = 'weights/vae_2d_epoch_100.pth'
+        model = VAE().to(device)
+        model.load_state_dict(torch.load(MODEL))
+        optimizer = optim.Adam(model.parameters(), lr=1e-5)
+    else:
+        model = VAE().to(device)
+        optimizer = optim.Adam(model.parameters(), lr=1e-5)
+        for epoch in range(1,501):
+            train(epoch)
+        MODEL = 'weights/vae_2d_epoch_100.pth'
+        model.load_state_dict(torch.load(MODEL))
 
-    MODEL = 'weights/vae_2d_epoch_100.pth'
-    model = VAE().to(device)
-    model.load_state_dict(torch.load(MODEL))
-    optimizer = optim.Adam(model.parameters(), lr=1e-5)
+    # MODEL = 'weights/vae_2d_epoch_100.pth'
+    # model = VAE().to(device)
+    # model.load_state_dict(torch.load(MODEL))
+    # optimizer = optim.Adam(model.parameters(), lr=1e-5)
 
     # actually do training
     for epoch in range(1, 501):
