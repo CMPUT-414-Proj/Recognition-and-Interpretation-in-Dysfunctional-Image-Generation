@@ -6,7 +6,7 @@ The research project is designed to focus on a few potential topics of dysfuncti
 
 * [Prerequisites](#Prerequisites)
 * [Requirements](#Requirements)
-* [Directory Structure](#Directory Structure)
+* [Directory Structure](#Structure)
 * [Installation](#Installation)
 * [Usage](#Usage)
 * [Outcome](#Outcome)
@@ -38,7 +38,7 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
-## Directory Structure
+## Structure
 
 ```
 ├─ vae.py  -->  VAE Builder;
