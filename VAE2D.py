@@ -21,13 +21,10 @@ from sklearn import manifold
 
 from visuals import imscatter
 
-is3D = True
+
 
 N = 2
-MODEL = 'weights/vae_2d_epoch_100.pth'
-# if is3D:
-#     N = 3
-#     MODEL = 'weights/vae_3d_epoch_100.pth'
+
 
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
 parser.add_argument('--batch-size',
@@ -65,15 +62,25 @@ class VAE(nn.Module):
             Construct the architecture of VAE
         """
         super(VAE, self).__init__()
+        # input layer
         self.fc1 = nn.Linear(784, 400)
+        # output layer of mu
         self.fc21 = nn.Linear(400, N)  # 20
+        # output layer of mu
         self.fc22 = nn.Linear(400, N)  # 20
+        # input layer of decoder
         self.fc3 = nn.Linear(N, 400)  # 20
+        # input layer of decoder
         self.fc4 = nn.Linear(400, 784)
 
     def encode(self, x):
         """
             Define the encoding process
+            :param:
+            - x, input data of the model;
+            :return:
+            - self.fc21(h1), mean of the latent Gaussian;
+            - self.fc22(h2), standard deviation of the latent Gaussian;
         """
         h1 = F.relu(self.fc1(x))
         # return mu, logvar
@@ -81,7 +88,12 @@ class VAE(nn.Module):
 
     def reparameterize(self, mu, log_var):
         """
-            Reparameterization trick
+            Reparameterization trick to sample from N(mu, var) from N(0,1)
+            :param:
+            - mu, mean of the latent Gaussian;
+            - log_var, standard deviation of the latent Gaussian;
+            :return:
+            - mu + eps * std, latent variable
         """
         std = torch.exp(0.5 * log_var)
         eps = torch.randn_like(std)
@@ -89,7 +101,11 @@ class VAE(nn.Module):
 
     def decode(self, z):
         """
-            Define the decoding process
+            Define the decoding process; Map the given latent codes onto the image space.
+            :param:
+            - z, latent variable;
+            :return:
+            - torch.sigmoid(self.fc4(h3)), out put data of decoder
         """
         h3 = F.relu(self.fc3(z))
         return torch.sigmoid(self.fc4(h3))
@@ -97,6 +113,13 @@ class VAE(nn.Module):
     def forward(self, x):
         """
             Forward propagation function
+            :param:
+            - x, input data of the model;
+            :return:
+            - x_out, output data of decoder;
+            - mu, mean of the latent Gaussian;
+            - log_var, standard deviation of the latent Gaussian;
+            - z, latent variable;
         """
         mu, log_var = self.encode(x.reshape(-1, 784))
         z = self.reparameterize(mu, log_var)
@@ -106,6 +129,10 @@ class VAE(nn.Module):
     def getZ(self, x):
         """
             Get the sampling variable Z
+            :param:
+            - x, input data of the model;
+            :return:
+            - z, latent variable;
         """
         mu, log_var = self.encode(x.reshape(-1, 784))
         z = self.reparameterize(mu, log_var)
@@ -115,6 +142,14 @@ class VAE(nn.Module):
 def loss_function(recon_x, x, mu, logvar, beta=1):
     """
         Reconstruction + KL divergence losses summed over all elements and batch
+        :param:
+        - recon_x, decoder-generated reconstructed data。
+        - x, input data;
+        - mu, mean of the latent Gaussian;
+        - log_var, standard deviation of the latent Gaussian;
+        - beta, Weighting factors for weighing reconstruction error and KL dispersion;
+        :return:
+        - BCE_loss + beta * KLD, weighted sum of reconstruction error and KL scattering;
     """
     BCE_loss = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
     # see Appendix B from VAE paper:
@@ -128,6 +163,11 @@ def loss_function(recon_x, x, mu, logvar, beta=1):
 def _removeOutliers(data, r=10):
     """
         Remove outliers
+        :param:
+        - data, input data;
+        - r, parameters for outlier detection, to control the percentage of outliers
+        :return:
+        - filtered: data after removal of outliers;
     """
     outlierRatio = r / 2
     # IQR = Q3 - Q1
@@ -146,6 +186,10 @@ def _removeOutliers(data, r=10):
 def _toImg(x):
     """
         Convert tensor x to a NumPy array representing an image
+        :param:
+        - x, input data;
+        :return:
+        - image, image with the form of array;
     """
     return x.cpu().detach().numpy().reshape((28, 28))
 
@@ -306,6 +350,7 @@ def train(epoch):
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss / len(train_loader.dataset)))
     torch.save(model.state_dict(), oj("./weights", f'vae_2d_epoch_n.pth'))
+    print("save successfully!!!")
 
 # Testing
 def test(epoch):
@@ -333,8 +378,6 @@ def test(epoch):
                 if epoch == 1:
                     save_image(comparison.cpu(), oj(out_dir, 'reconstruction_' + str(epoch) + '.png'), nrow=n)
                     dimension = "2d"
-                    # if is3D:
-                    #     a = "3d"
                     # Save weights
                     torch.save(model.state_dict(), oj("./weights", f'vae_{dimension}_epoch_{epoch}.pth'))
     # Calculate the average loss
@@ -359,6 +402,21 @@ if __name__ == "__main__":
     out_dir = 'samples2'
     os.makedirs(out_dir, exist_ok=True)
 
+    # file_path = "./weights/vae_2d_epoch_100.pth"
+    # if os.path.exists(file_path):
+    #     MODEL = 'weights/vae_2d_epoch_100.pth'
+    #     model = VAE().to(device)
+    #     model.load_state_dict(torch.load(MODEL))
+    #     optimizer = optim.Adam(model.parameters(), lr=1e-5)
+    # else:
+    #     model = VAE().to(device)
+    #     optimizer = optim.Adam(model.parameters(), lr=1e-5)
+    #     for epoch in range(1,501):
+    #         train(epoch)
+    #     MODEL = 'weights/vae_2d_epoch_100.pth'
+    #     model.load_state_dict(torch.load(MODEL))
+
+    MODEL = 'weights/vae_2d_epoch_100.pth'
     model = VAE().to(device)
     model.load_state_dict(torch.load(MODEL))
     optimizer = optim.Adam(model.parameters(), lr=1e-5)
