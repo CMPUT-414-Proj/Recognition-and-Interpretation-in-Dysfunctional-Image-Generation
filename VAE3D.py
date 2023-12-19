@@ -240,15 +240,15 @@ def _plot3DLatentSpacePlus(Z):
     print(samples)
     print("VAE decoding...")
     for idx, sample in enumerate(samples):
-        plt.scatter(sample[:, 0], sample[:, 1], color='white', edgecolor="black", alpha=0.7, s=20)
-        plt.annotate(f"{str(idx + 1)}", (sample[:, 0] + 0.1, sample[:, 1] + 0.1), color="red")
+        plt.scatter(sample[:, 0], sample[:, 1], sample[:, 2], color="white", edgecolor="black")
+        plt.text(sample[:, 0], sample[:, 1], sample[:, 2], f"{str(idx + 1)}", color="red")
     plt.show()
 
     # Decode and display each sample
     for idx, sample in enumerate(samples):
         sampleRec = model.decode(Tensor(sample))
         plt.figure()
-        plt.imshow(_toImg(sampleRec), cmap='gray')
+        plt.imshow(_toImg(sampleRec), cmap='gray')  # Assuming _toImg creates a 2D image from the sample
         plt.title(f'{str(idx + 1)}')
         plt.show()
 
