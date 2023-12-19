@@ -2,6 +2,13 @@
 
 The research project is designed to focus on a few potential topics of dysfunctional issues such as "latent feature loss", "unbalancing data generation", and "vanishing divergence". This project explores the marginal fields of image generation techniques and provides insights into further advancement of the existing deep generative processes.
 
+## Team Members
+
+| Team Member   | Contact             |
+|---------------|---------------------|
+| Eden Zhou     | zhou9@ualberta.ca   |
+| Rui Guo       | rg5@ualberta.ca     |
+
 ## Table of Contents
 
 * [Prerequisites](#Prerequisites)
