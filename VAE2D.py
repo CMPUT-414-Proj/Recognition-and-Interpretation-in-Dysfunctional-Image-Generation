@@ -237,30 +237,6 @@ def _plot2DLatentSpacePlus(Z):
         sample_16 := np.array([np.random.normal(1.3, 0.1), np.random.normal(-1, 0.15)]).reshape(1, 2),
         sample_17 := np.array([np.random.normal(0, 0.3), np.random.normal(0, 0.15)]).reshape(1, 2),
         sample_18 := np.array([np.random.normal(0, 0.3), np.random.normal(0, 0.15)]).reshape(1, 2),
-        # sample_1 := np.array(
-        #     [np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        # sample_2 := np.array(
-        #     [np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        #
-        # sample_3 := np.array(
-        #     [np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        # sample_4 := np.array(
-        #     [np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        #
-        # sample_5 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(
-        #     1, 3),
-        # sample_6 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(
-        #     1, 3),
-        #
-        # sample_7 := np.array(
-        #     [np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        # sample_8 := np.array(
-        #     [np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        #
-        # sample_9 := np.array(
-        #     [np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        # sample_10 := np.array(
-        #     [np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
     ]
     # samples = []
     print(samples)
@@ -279,62 +255,62 @@ def _plot2DLatentSpacePlus(Z):
         plt.show()
 
 
-def _plot3DLatentSpacePlus(Z):
-    """
-        Plot the latent space of 3D VAE
-    """
-    # Get the label
-    trainLabels = trainingData.targets[:60000].reshape((-1, 1))
-    labels = np.array([int(item[0]) for item in trainLabels.numpy()])
-    fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    # Set the axis range
-    SCOPE = 6
-    ax.set_xlim((-SCOPE, SCOPE))
-    ax.set_ylim((-SCOPE, SCOPE))
-    ax.set_zlim((-SCOPE, SCOPE))
-
-    print(Z.shape)
-    print(len(Z[:, 0]), len(Z[:, 1]), len(Z[:, 2]))
-    a = np.array(Z[:, 0].detach().reshape((-1, 1)), dtype=list)
-    b = np.array(Z[:, 1].detach().reshape((-1, 1)), dtype=list)
-    c = np.array(Z[:, 2].detach().reshape((-1, 1)), dtype=list)
-    # Scatterplotting
-    ax.scatter(a, b, c, edgecolors="black", c=labels)
-    # Generate Samples
-    samples = []
-    """
-    samples = [
-        sample_1 := np.array([np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        sample_2 := np.array([np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-
-        sample_3 := np.array([np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-        sample_4 := np.array([np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
-
-        sample_5 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        sample_6 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-
-        sample_7 := np.array([np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        sample_8 := np.array([np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-
-        sample_9 := np.array([np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-        sample_10 := np.array([np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
-    ]"""
-
-    print(samples)
-    print("VAE decoding...")
-    for idx, sample in enumerate(samples):
-        ax.scatter(sample[:, 0], sample[:, 1], sample[:, 2], color="white", edgecolor="black")
-        ax.text(sample[:, 0], sample[:, 1], sample[:, 2], f"{str(idx + 1)}", color="red")
-    plt.show()
-
-    # Decode and display each sample
-    for idx, sample in enumerate(samples):
-        sampleRec = model.decode(Tensor(sample))
-        plt.figure()
-        plt.imshow(_toImg(sampleRec), cmap='gray')  # Assuming _toImg creates a 2D image from the sample
-        plt.title(f'{str(idx + 1)}')
-        plt.show()
+# def _plot3DLatentSpacePlus(Z):
+#     """
+#         Plot the latent space of 3D VAE
+#     """
+#     # Get the label
+#     trainLabels = trainingData.targets[:60000].reshape((-1, 1))
+#     labels = np.array([int(item[0]) for item in trainLabels.numpy()])
+#     fig = plt.figure(figsize=(8, 8))
+#     ax = fig.add_subplot(111, projection='3d')
+#     # Set the axis range
+#     SCOPE = 6
+#     ax.set_xlim((-SCOPE, SCOPE))
+#     ax.set_ylim((-SCOPE, SCOPE))
+#     ax.set_zlim((-SCOPE, SCOPE))
+#
+#     print(Z.shape)
+#     print(len(Z[:, 0]), len(Z[:, 1]), len(Z[:, 2]))
+#     a = np.array(Z[:, 0].detach().reshape((-1, 1)), dtype=list)
+#     b = np.array(Z[:, 1].detach().reshape((-1, 1)), dtype=list)
+#     c = np.array(Z[:, 2].detach().reshape((-1, 1)), dtype=list)
+#     # Scatterplotting
+#     ax.scatter(a, b, c, edgecolors="black", c=labels)
+#     # Generate Samples
+#     samples = []
+#     """
+#     samples = [
+#         sample_1 := np.array([np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+#         sample_2 := np.array([np.random.normal(0.6, 0.1), np.random.normal(-2.8, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+#
+#         sample_3 := np.array([np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+#         sample_4 := np.array([np.random.normal(-1, 0.15), np.random.normal(-3, 0.15), np.random.normal(0, 0.15)]).reshape(1, 3),
+#
+#         sample_5 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#         sample_6 := np.array([np.random.normal(-4, 0.3), np.random.normal(1, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#
+#         sample_7 := np.array([np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#         sample_8 := np.array([np.random.normal(-1.75, 0.3), np.random.normal(3.75, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#
+#         sample_9 := np.array([np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#         sample_10 := np.array([np.random.normal(3.75, 0.3), np.random.normal(2, 0.3), np.random.normal(0, 0.15)]).reshape(1, 3),
+#     ]"""
+#
+#     print(samples)
+#     print("VAE decoding...")
+#     for idx, sample in enumerate(samples):
+#         ax.scatter(sample[:, 0], sample[:, 1], sample[:, 2], color="white", edgecolor="black")
+#         ax.text(sample[:, 0], sample[:, 1], sample[:, 2], f"{str(idx + 1)}", color="red")
+#     plt.show()
+#
+#     # Decode and display each sample
+#     for idx, sample in enumerate(samples):
+#         sampleRec = model.decode(Tensor(sample))
+#         plt.figure()
+#         plt.imshow(_toImg(sampleRec), cmap='gray')  # Assuming _toImg creates a 2D image from the sample
+#         plt.title(f'{str(idx + 1)}')
+#         plt.show()
 
 # Traning
 def train(epoch):
@@ -370,7 +346,8 @@ def train(epoch):
     GMM.fit(Z.cpu().detach().numpy())
 
     # _plot3DLatentSpacePlus(Z)
-    _plot2DLatentSpacePlus(Z)
+    if epoch ==100:
+        _plot2DLatentSpacePlus(Z)
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, training_loss / len(train_loader.dataset)))
     torch.save(model.state_dict(), oj("./weights",  f'vae_2d_epoch_{epoch}.pth'))
@@ -435,7 +412,7 @@ if __name__ == "__main__":
     else:
         model = VAE().to(device)
         optimizer = optim.Adam(model.parameters(), lr=1e-5)
-        for epoch in range(1,501):
+        for epoch in range(1,101):
             train(epoch)
         MODEL = 'weights/vae_2d_epoch_100.pth'
         model.load_state_dict(torch.load(MODEL))
